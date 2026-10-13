@@ -1,57 +1,68 @@
 # xArtists-Slot (Primordial Slot)
 
-**Extracted from the main [xArtists](https://github.com/Neltud/xArtists) monorepo on 2026-10-13.**
+**Fully isolated from [xArtists](https://github.com/Neltud/xArtists) on 2026-10-13.**
 
-This repository hosts the **Slot / Primordial Slot** fun spin game (MultiversX mainnet).
-It is intentionally **out of scope** of the core xArtists product (Phygital RWA, NFT gallery, LIA agents, TCA Academy, $TRO utility).
+Standalone MultiversX slot / casino (paper Fun + on-chain REAL when payable).
 
-## Status
+## Layout
 
-- Smart contract previously live on mainnet (house ~0.5 EGLD, `isPayable=false` for REAL mode).
-- Front-end page + components migrated here:
-  - `src/pages/SlotPage.tsx`
-  - `src/components/slot/PotsStrip.tsx`
-  - `src/components/slot/SlotModeSwitch.tsx`
-  - `src/components/SlotSmartUnlock.tsx`
-- Deploy / upgrade workflows migrated:
-  - `.github/workflows/deploy-slot-casino.yml`
-  - `.github/workflows/upgrade-slot-payable.yml`
+```
+contracts/slot-casino/     Rust SC (multiversx-sc 0.66)
+  src/lib.rs
+  meta/  wasm/
+  PROVABLY_FAIR.md
+src/
+  pages/SlotPage.tsx
+  components/slot/         PotsStrip, SlotModeSwitch
+  components/SlotSmartUnlock.tsx
+  config/slotEconomy.ts    bets, progressive, settle
+  config/scStatus.ts       canSpinSlot, address (Slot-only)
+  config/contracts.ts      SLOT_CASINO_ADDRESS
+  hooks/useSlotTx.ts
+  hooks/useSendTransaction.ts   stub until xPortal wired
+  lib/slotHouseGuard.ts
+.github/workflows/
+  deploy-slot-casino.yml
+  upgrade-slot-payable.yml
+```
 
-## Dependencies still in main monorepo (to isolate next)
-
-These paths were shared and are still referenced by the Slot page:
-
-| Path (in xArtists) | Role |
-|--------------------|------|
-| `apps/frontend/src/config/slotEconomy.ts` | Bets, progressive, settle |
-| `apps/frontend/src/config/scStatus.ts` | `canSpinSlot`, `SLOT_CASINO_ADDRESS` |
-| `apps/frontend/src/hooks/useSlotTx.ts` | On-chain spin TX |
-| `apps/frontend/src/lib/slotHouseGuard.ts` | House balance guard |
-| `contracts/slot-casino/` | Rust SC |
-
-Copy them into this repo when building the standalone app.
-
-## Install (standalone — planned)
+## Build Smart Contract
 
 ```bash
-git clone https://github.com/Neltud/xArtists-Slot.git
-cd xArtists-Slot
-# after scaffolding Vite + React + MultiversX SDK:
+cd contracts/slot-casino
+rustup target add wasm32v1-none
+cargo install multiversx-sc-meta --locked --force
+sc-meta all build
+# → output/slot-casino.wasm
+```
+
+## Front-end (next step)
+
+Scaffold Vite + React, then point imports at `src/`:
+
+```bash
+npm create vite@latest . -- --template react-ts   # if empty root
 npm install
-npm run dev
 npm run build
 ```
 
-## Deploy SC (manual)
+Wire MultiversX wallet (xPortal / sdk-dapp) by replacing `src/hooks/useSendTransaction.ts`.
 
-Workflows require secrets `SC_DEPLOYER_PEM` and confirmation strings:
+## Deploy / upgrade SC
 
-- Deploy: `DEPLOY_MAINNET`
-- Upgrade payable: `UPGRADE_SLOT_PAYABLE`
+Workflows need secret `SC_DEPLOYER_PEM`:
+
+| Workflow | Confirm string |
+|----------|----------------|
+| `deploy-slot-casino.yml` | `DEPLOY_MAINNET` |
+| `upgrade-slot-payable.yml` | `UPGRADE_SLOT_PAYABLE` |
+
+Live address: `erd1qqqqqqqqqqqqqpgquf3cuv2zsfsahy7ypvter3qcep4ptthsvhxqs4g34f`  
+(currently `isPayable=false` — REAL spins blocked until payable upgrade)
 
 ## Links
 
 - Main product: https://neltud.github.io/xArtists/
 - Main repo: https://github.com/Neltud/xArtists
 
-MIT — same license as xArtists.
+MIT
