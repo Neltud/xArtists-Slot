@@ -8,15 +8,46 @@ It is intentionally **out of scope** of the core xArtists product (Phygital RWA,
 ## Status
 
 - Smart contract previously live on mainnet (house ~0.5 EGLD, `isPayable=false` for REAL mode).
-- Front-end page, mode switch (FUN / REAL), pots strip and related components lived under `apps/frontend` of the main repo.
-- All Slot surface was removed from xArtists on 2026-10-13 so the main dApp stays focused.
+- Front-end page + components migrated here:
+  - `src/pages/SlotPage.tsx`
+  - `src/components/slot/PotsStrip.tsx`
+  - `src/components/slot/SlotModeSwitch.tsx`
+  - `src/components/SlotSmartUnlock.tsx`
+- Deploy / upgrade workflows migrated:
+  - `.github/workflows/deploy-slot-casino.yml`
+  - `.github/workflows/upgrade-slot-payable.yml`
 
-## Next steps (this repo)
+## Dependencies still in main monorepo (to isolate next)
 
-1. Copy the Slot SC (Rust) + ABI from the original monorepo.
-2. Copy `SlotPage.tsx`, `components/slot/*`, related config (`scStatus`, addresses).
-3. Stand-alone Vite + React + MultiversX SDK front-end.
-4. Deploy to its own GitHub Pages (or other host).
+These paths were shared and are still referenced by the Slot page:
+
+| Path (in xArtists) | Role |
+|--------------------|------|
+| `apps/frontend/src/config/slotEconomy.ts` | Bets, progressive, settle |
+| `apps/frontend/src/config/scStatus.ts` | `canSpinSlot`, `SLOT_CASINO_ADDRESS` |
+| `apps/frontend/src/hooks/useSlotTx.ts` | On-chain spin TX |
+| `apps/frontend/src/lib/slotHouseGuard.ts` | House balance guard |
+| `contracts/slot-casino/` | Rust SC |
+
+Copy them into this repo when building the standalone app.
+
+## Install (standalone — planned)
+
+```bash
+git clone https://github.com/Neltud/xArtists-Slot.git
+cd xArtists-Slot
+# after scaffolding Vite + React + MultiversX SDK:
+npm install
+npm run dev
+npm run build
+```
+
+## Deploy SC (manual)
+
+Workflows require secrets `SC_DEPLOYER_PEM` and confirmation strings:
+
+- Deploy: `DEPLOY_MAINNET`
+- Upgrade payable: `UPGRADE_SLOT_PAYABLE`
 
 ## Links
 
